@@ -15,7 +15,7 @@ exports.handler = async function(event) {
   }).promise();
 
   const html = render({
-    items: resp.Items,
+    items: resp.Items.slice(0,5),
     title: 'Vanity Numbers Table',
   });
 
