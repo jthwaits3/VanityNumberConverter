@@ -26,15 +26,32 @@ Enter y when asked to confirm the changes.
 ### Web viewer
 The web viewer component is derived primarily from the cdk-dynamo-table-viewer package under Apache 2.0 License
 https://github.com/eladb/cdk-dynamo-table-viewer/blob/master/lib/table-viewer.ts
-It exposes an http endpoint that renders the 5 most recent vanity callers and associated vanity numbers using API Gateway and Lambda
+It exposes an http endpoint that renders the 5 most recent vanity callers and associated vanity numbers using API Gateway and Lambda.
 
+## Testing
 ## Discussion Points
-### Development Approach
+### Implementation Approach
+To begin building this application, the prompt was first broken down into several high level requirements:
+ 1. Create a lambda that takes in a phone number and returns associated vanity numbers
+ 2. Store calling numbers and associated vanity numbers in a DynamoDB table
+ 3. Create an Amazon Connect contact flow that utilizes the Lambda function to read vanity numbers back to the caller
+ 4. Create a CloudFormation template that can be used to deploy the solution in another AWS environment
+ 5. (Optional) Provide an HTTP endpoint for viewing the 5 most recent callers and associated Vanity numbers
+The overall complexity of the solution required was seen as low to moderate, so my approach was to build an application skeleton focused around existing knowledge, and then build out the gaps alongside researching required technologies I wasn't as familiar with. To this end, I started where I was most comfortable, using the AWS CDK to create my stack and adding a lambda with a placeholder response and dynamoDb table for converting the phone numbers. As I prepared to add the contact flow resource, I realized Connect resources were not yet supported in the AWS CDK, but there was a Connect SDK available in a preview state. A placeholder CDK custom resource, provider, and event handler were added to the stack to represent these components, but for initial development and testing, a contact flow was manually created via the GUI in the Connect web portal.
+At this point in development, I was able to associate a contact flow utilizing my lambda function with a Connect phone number and get expected test results upon calling it - including functional milestones such as this is great for motivation and promoting interest in the project! The next piece I chose to tackle was replacing the lambda pseudo-response with the vanity converter logic. I spent time researching various algorithms for generating phone words and determining if there was an strong open-source solution to utilize. Not finding exactly what I was looking forward, I implemented my own solution in javascript utilizing a Trie structure and a multi-dimensional array of valid permutations to return an array of vanity numbers. The solution utilizes a similar approach to that described here: http://stevehanov.ca/blog/index.php?id=9
+After verifying the lambda function now worked as intended, I returned to the custom resource implementation of the contact flow, specifically the resource event handler lambda. Having manually created the resource earlier I knew there were two actions that needed to occur: the converter lambda would need to be associated with the AWS Contact instance (Connect.associateLambdaFunction()) and a contact flow object would need to be created (Connect.createContactFlow()). These SDK methods were both added to the handler, and two CloudFormation parameters added to the stack deployment: one for the AWS Connect ID and one for the desired name of the new contact flow.
+I saved the final web viewer component service for last as it was not a dependency for any other functionality, and I had previously added similar functionality to existing stacks. I used a package, cdk-dynamo-table-viewer (Apache 2.0 license), as a starting point and made minor modifications to parameters and the data displayed.
+After completing development of a fully functional solution, I began implementing test cases for the cdk stack. In larger projects with more moving pieces or more detailed requirements, these tests would be better implemented during the initial development work. However, on a small project being developed individually, considerations for creating a test suite can benefit from having a holistic view of the final solution.
+
+
 ### Notable Challenges
-During the development of this project, three challenges stood out.
- * Phoneword algorithm
+## Data loss
+The biggest set-back during the development of this project was a tough reminder that 1) you're never too experienced to make a rookie mistake, and 2) data in the cloud does not inherently provide immunity to data loss. The AWS ecosystem can be very exciting to work in and there's great efficiencies to take advantage of in the service synergies. I chose to initially use Cloud9 as my IDE for this project, and CodeCommit to store my repository. Taking it a step further and attempting to showcase my knowledge of some dev-ops services, I moved the CodeCommit repository to be defined in my CDK stack, along with a CodePipeline resource to manage automatic deployments. Thursday morning as a final test deploying the solution, I wanted to remove all the resources from my AWS account and re-deploy from scratch. After executing 'cdk destroy', I navigated to the CloudFormation console to verify it had been removed properly when disaster struck. I  saw four stacks with names beginning like 'VanityNumberCoverterApp_####..'. Knowing I had made some "ghost" stacks earlier in the week that I had not removed properly, I quickly selected each of four stacks, selected the Delete drop-down, and typed in my confirmation: I was sure I wanted to delete those stacks. Including the one containing my Cloud9 EC2 instance and associated EBS volume. I had destroyed any CodeCommit repositories in my application stacks, and could no longer access the same Cloud9 environment.
+Realizing my mistake a moment later, I spent some time confirming my fear: my actions were irreversible. Fortunately I did have time to recreate the application, albeit taking some more shortcuts along the way. As demotivating as losing a significant portion of work was, I found inspiration of equal magnitude in how quickly I was able to re-develop my solution; a reminder that there is no better substitute for in-depth learning of new strategies and technologies than using them to build real solutions.
+## Phoneword algorithm
+ The most significant
+## Connect Custom Resource
  * Contact Flow Custom Resource
- * Working in the cloud does not provide immunity to data loss
 ### Key Areas for Improvement
 * Test cases; build pipeline
 * update, delete, and isComplete handler for contact flow
