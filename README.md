@@ -16,12 +16,15 @@ cdk bootstrap
 cdk deploy --parameters connectInstanceId='YOUR CONNECT INSTANCE ID' --parameters contactFlowName='NAME FOR NEW CONTACT FLOW'
 Enter y when asked to confirm the changes.
 ```
+To use the contact flow, add it to another existing flow or associate it as the default routing for a phone number.
 
 ## Overview
 
 ### Vanity Converter Service
 
+
 ### Contact Flow Custom Resource
+The components of the contact flow custom resource are also defined in lib/vanity_converter_app-stack, and the lambda event handler in the lambda/contactFlowResource. This custom resource utilizes the AWS SDK for Connect for two action: Connect.associateLambdaFunction() to associate the Lambda with the Connect environment, and Connect.createContactFlow() to create the contact flow object. The content of the contact flow is finalized during execution depending on the converter Lambda ARN and the table viewer endpoint.
 
 ### Web viewer
 The web viewer component is derived primarily from the cdk-dynamo-table-viewer package under Apache 2.0 License
@@ -48,12 +51,14 @@ After completing development of a fully functional solution, I began implementin
 ## Data loss
 The biggest set-back during the development of this project was a tough reminder that 1) you're never too experienced to make a rookie mistake, and 2) data in the cloud does not inherently provide immunity to data loss. The AWS ecosystem can be very exciting to work in and there's great efficiencies to take advantage of in the service synergies. I chose to initially use Cloud9 as my IDE for this project, and CodeCommit to store my repository. Taking it a step further and attempting to showcase my knowledge of some dev-ops services, I moved the CodeCommit repository to be defined in my CDK stack, along with a CodePipeline resource to manage automatic deployments. Thursday morning as a final test deploying the solution, I wanted to remove all the resources from my AWS account and re-deploy from scratch. After executing 'cdk destroy', I navigated to the CloudFormation console to verify it had been removed properly when disaster struck. I  saw four stacks with names beginning like 'VanityNumberCoverterApp_####..'. Knowing I had made some "ghost" stacks earlier in the week that I had not removed properly, I quickly selected each of four stacks, selected the Delete drop-down, and typed in my confirmation: I was sure I wanted to delete those stacks. Including the one containing my Cloud9 EC2 instance and associated EBS volume. I had destroyed any CodeCommit repositories in my application stacks, and could no longer access the same Cloud9 environment.
 Realizing my mistake a moment later, I spent some time confirming my fear: my actions were irreversible. Fortunately I did have time to recreate the application, albeit taking some more shortcuts along the way. As demotivating as losing a significant portion of work was, I found inspiration of equal magnitude in how quickly I was able to re-develop my solution; a reminder that there is no better substitute for in-depth learning of new strategies and technologies than using them to build real solutions.
-## Phoneword algorithm
- The most significant
+## Vanity converter
+The number to vanity number conversion required a unique algorithm that would be performant enough across inputs to reliably execute before the contact flow timeout. Some solutions to similar problems found online seemed very optimized but consisted of 1000's of lines of code. Instead, I used high-level concepts from different examples to develop a solution from scratch - resulting in something that may not be as optimized, but is performant enough for this use case and that I can speak to confidently.
 ## Connect Custom Resource
- * Contact Flow Custom Resource
-### Key Areas for Improvement
-* Test cases; build pipeline
-* update, delete, and isComplete handler for contact flow
-* SSML tags for text-to-speech of vanity numbers
-* Policy permissions granted to custom resource event handler
+Having previously created custom resources with the CDK, I had little initial concern implementing the custom resource handler. However, the Connect SDK API was slightly less developed and documented, .
+
+### Additional Areas for Improvement
+* Re-create cdk build test cases lost during event discussed above
+* Implement a CodePipeline to automate deployments and testing
+* Utilize SSML tags for text-to-speech of vanity numbers and web-viewer
+* Grant less permissive policy statement to custom resource handler
+* Add functionality for custom resource Delete request types and improve Update logic
