@@ -2,6 +2,12 @@
 !jest.config.js
 *.d.ts
 node_modules
+!lambda/*
+!lambda/contactFlowResource/*
+!lambda/tableViewer/*
+!lambda/vanityConverter/*
+!lambda/vanityConverter/node_modules/*
+!lambda/vanityConverter/node_modules/trie/*
 
 # CDK asset staging directory
 .cdk.staging
