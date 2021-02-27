@@ -62,6 +62,8 @@ Having previously created custom resources with the CDK, I had little initial co
 ### Additional Areas for Improvement
 * Re-create cdk build test cases lost during event discussed above
 * Implement a CodePipeline to automate deployments and testing
+* Add additional error handling and edge case scenarios to converter lambda
 * Utilize SSML tags for text-to-speech of vanity numbers and web-viewer
 * Grant less permissive policy statement to custom resource handler
 * Add functionality for custom resource Delete request types and improve custom resource Update logic
+* Add license to repo

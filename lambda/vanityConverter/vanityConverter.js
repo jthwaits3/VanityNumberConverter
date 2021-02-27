@@ -7,7 +7,6 @@ exports.handler = async function(event, context, callback) {
 
   const caller = event.Details.ContactData.CustomerEndpoint.Address;
   let trimmedCallerArray = caller.substring(caller.length-10,caller.length).split('');
-  // trimmedCallerArray.splice(trimmedCallerArray.length-10,)
   const vanityNumbers = generateVanityNumbers(trimmedCallerArray);
   var resultMap = {
     callingNumber: caller,

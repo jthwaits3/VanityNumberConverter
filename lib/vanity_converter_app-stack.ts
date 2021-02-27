@@ -54,6 +54,7 @@ export class VanityConverterAppStack extends cdk.Stack {
         CONTACT_FLOW_NAME: contactFlowName.valueAsString,
         VIEWER_ENDPOINT: vanityTableViewer.endpoint
       },
+      //Policy statements required needs further investigation
       initialPolicy: [new PolicyStatement({
         actions: ['connect:associateLambdaFunction',
           'connect:createContactFlow',
